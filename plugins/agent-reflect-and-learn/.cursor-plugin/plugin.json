@@ -16,6 +16,8 @@
     "wisdom-to-content",
     "social-media",
     "blog",
-    "writing"
-  ]
+    "writing",
+    "hooks"
+  ],
+  "hooks": "./hooks/hooks.json"
 }
