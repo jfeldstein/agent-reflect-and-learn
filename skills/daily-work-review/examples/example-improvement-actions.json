@@ -1,0 +1,20 @@
+{
+  "memory_updates": [
+    "Collect deterministic evidence before writing daily retrospectives.",
+    "Do not keep re-explaining the same multi-step debug workflow when a reusable playbook would do."
+  ],
+  "skill_candidates": [
+    "Create a hard-debugging-summary skill that converts root-cause work into a compact reusable note."
+  ],
+  "script_candidates": [
+    "Add a script to diff today's report against the prior 10 reports and surface recurring friction patterns."
+  ],
+  "workflow_fixes": [
+    "Rename the wrap-up command to daily-work-review so the intent is obvious and activation is not ambiguous."
+  ],
+  "tomorrow_actions": [
+    "Open artifacts/2026-04-09-daily-review.md first.",
+    "Run the failing test before touching implementation.",
+    "Convert the repeated setup checklist into a script."
+  ]
+}

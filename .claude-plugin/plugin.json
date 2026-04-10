@@ -1,0 +1,12 @@
+{
+  "name": "agent-reflect-and-learn",
+  "version": "1.0.0",
+  "description": "End-of-day work review: collect evidence from git and session history, reflect on mistakes and friction, emit improvement actions and a tomorrow brief.",
+  "keywords": [
+    "daily-review",
+    "retrospective",
+    "reflection",
+    "learning",
+    "evidence"
+  ]
+}
