@@ -5,8 +5,15 @@ import argparse
 import datetime as dt
 import json
 import subprocess
+import sys
 from pathlib import Path
 from typing import Iterable
+
+_scripts_dir = Path(__file__).resolve().parent
+if str(_scripts_dir) not in sys.path:
+    sys.path.insert(0, str(_scripts_dir))
+
+import plugin_config  # noqa: E402
 
 SCHEDULED_TASK_MARKER = "<scheduled-task"
 
@@ -67,7 +74,12 @@ def parse_args() -> argparse.Namespace:
     p = argparse.ArgumentParser(description="Collect deterministic evidence for a daily work review.")
     p.add_argument("--date", required=True, help="Date in YYYY-MM-DD")
     p.add_argument("--repo", default=".", help="Repository root")
-    p.add_argument("--out", default="artifacts", help="Output directory")
+    p.add_argument(
+        "--out",
+        default=None,
+        metavar="DIR",
+        help="Output directory (default: artifactsPath from .agent-reflect-and-learn/config.json in --repo)",
+    )
     p.add_argument("--extra", nargs="*", default=[], help="Extra files or directories to include")
     p.add_argument("--max-plan-files", type=int, default=8)
     p.add_argument("--max-history-items", type=int, default=25)
@@ -534,7 +546,14 @@ def main() -> int:
     args = parse_args()
     target_day = dt.date.fromisoformat(args.date)
     repo = Path(args.repo).expanduser().resolve()
-    out_dir = Path(args.out).expanduser().resolve()
+    if args.out is not None:
+        out_dir = Path(args.out).expanduser().resolve()
+    else:
+        ap = plugin_config.load_artifacts_path(repo)
+        if ap is None:
+            plugin_config.print_config_required_message(repo, prog="collect_day_evidence.py")
+            return 2
+        out_dir = plugin_config.resolve_artifacts_dir(repo, ap)
     out_dir.mkdir(parents=True, exist_ok=True)
 
     payload = {

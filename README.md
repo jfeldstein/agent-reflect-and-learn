@@ -28,7 +28,7 @@ Configure a **daily** scheduled task in Claude Code whose prompt is simply:
 run /agent-reflect-and-learn
 ```
 
-Point the task at the repository (or worktree) you want reviewed so `--repo .` and `artifacts/` resolve correctly. That invokes the bundled command, which runs the full skill workflow for today’s date.
+Point the task at the repository (or worktree) you want reviewed so `--repo .` and your configured artifacts directory resolve correctly. On first use in that repo, the skill asks where to store artifacts and writes `.agent-reflect-and-learn/config.json` (default `artifactsPath`: `artifacts`).
 
 ## Contents
 
@@ -40,18 +40,28 @@ Plugin root: `plugins/agent-reflect-and-learn/` (in this repo; same layout in th
 - **Scripts** — `collect_day_evidence.py`, `push_daily_review_artifacts.py`
 - **Assets** — report template, rubric, examples
 
-## Quick use
+## Configuration (per reviewed repository)
 
-From the root of the repository you want to review (where `artifacts/` should live):
+Under the **target repo** root (`--repo`), the plugin reads `.agent-reflect-and-learn/config.json`:
 
-```bash
-python3 "${CLAUDE_PLUGIN_ROOT}/skills/agent-reflect-and-learn/scripts/collect_day_evidence.py" --date YYYY-MM-DD --repo . --out artifacts
+```json
+{ "artifactsPath": "artifacts" }
 ```
 
-After the skill produces `artifacts/YYYY-MM-DD-daily-review.md` and `artifacts/YYYY-MM-DD-improvement-actions.json`, push from the same repo root:
+Relative paths are resolved against that repo root. Create or edit with **`jq`** (see `SKILL.md`). The collector and push scripts use this when `--out` / `--artifacts-dir` are omitted. First run: the skill asks where to put artifacts if the file is missing.
+
+## Quick use
+
+From the root of the repository you want to review, after config exists (or use `--out` / `--artifacts-dir` to override):
 
 ```bash
-python3 "${CLAUDE_PLUGIN_ROOT}/skills/agent-reflect-and-learn/scripts/push_daily_review_artifacts.py" --date YYYY-MM-DD --repo . --artifacts-dir artifacts
+python3 "${CLAUDE_PLUGIN_ROOT}/skills/agent-reflect-and-learn/scripts/collect_day_evidence.py" --date YYYY-MM-DD --repo .
+```
+
+After the skill produces `YYYY-MM-DD-daily-review.md` and `YYYY-MM-DD-improvement-actions.json` under your artifacts directory, push from the same repo root:
+
+```bash
+python3 "${CLAUDE_PLUGIN_ROOT}/skills/agent-reflect-and-learn/scripts/push_daily_review_artifacts.py" --date YYYY-MM-DD --repo .
 ```
 
 If you run these commands outside Claude Code, set `CLAUDE_PLUGIN_ROOT` to the filesystem path of this plugin’s root directory (the folder that contains `.claude-plugin/`).

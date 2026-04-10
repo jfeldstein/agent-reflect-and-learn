@@ -27,21 +27,70 @@ By the end of the run, produce all of the following:
 ## Required workflow
 Follow this workflow in order.
 
+### 0) Configure where artifacts live (first use per target repo)
+Evidence and review outputs share one directory per git repository you review. The path is stored in **jq-friendly JSON** at:
+
+`.agent-reflect-and-learn/config.json` (under the **`--repo` root**, not inside the plugin install)
+
+Shape:
+
+```json
+{ "artifactsPath": "artifacts" }
+```
+
+- **`artifactsPath`**: directory for evidence + daily review files. Relative paths are resolved against the **`--repo` root**; absolute paths are allowed.
+- **Sane default to offer:** `artifacts` (i.e. `<repo>/artifacts/`).
+
+**First use (config missing or `artifactsPath` empty/missing):** Stop and **ask the user** which directory to use (recommend `artifacts`). Do **not** silently invent a path. After they confirm, create the file with **`jq`**:
+
+```bash
+mkdir -p .agent-reflect-and-learn
+jq -n --arg p "artifacts" '{artifactsPath: $p}' > .agent-reflect-and-learn/config.json
+```
+
+Substitute the chosen path for `"artifacts"` in `--arg p`.
+
+**Read current value:**
+
+```bash
+jq -r '.artifactsPath' .agent-reflect-and-learn/config.json
+```
+
+**Change later (single-key file, safe overwrite):**
+
+```bash
+jq -n --arg p "new/relative/path" '{artifactsPath: $p}' > .agent-reflect-and-learn/config.json
+```
+
+Or merge in place without losing future keys:
+
+```bash
+tmp="$(mktemp)" && jq --arg p "new/relative/path" '.artifactsPath = $p' .agent-reflect-and-learn/config.json > "$tmp" && mv "$tmp" .agent-reflect-and-learn/config.json
+```
+
+**Override without config:** You can still pass `--out` to the collector or `--artifacts-dir` to the push script for a one-off path.
+
 ### 1) Collect evidence first
 Do not begin with freeform reflection.
 
 Start by running the deterministic collector:
 
-Run from the target git repo root (the workspace you are reviewing). With this plugin installed, `CLAUDE_PLUGIN_ROOT` points at the plugin directory:
+Run from the target git repo root (the workspace you are reviewing). With this plugin installed, `CLAUDE_PLUGIN_ROOT` points at the plugin directory. After `.agent-reflect-and-learn/config.json` exists, **omit `--out`** so the collector reads `artifactsPath`:
 
 ```bash
-python3 "${CLAUDE_PLUGIN_ROOT}/skills/agent-reflect-and-learn/scripts/collect_day_evidence.py" --date YYYY-MM-DD --repo . --out artifacts
+python3 "${CLAUDE_PLUGIN_ROOT}/skills/agent-reflect-and-learn/scripts/collect_day_evidence.py" --date YYYY-MM-DD --repo .
 ```
 
 If needed, include extra notes or paths:
 
 ```bash
-python3 "${CLAUDE_PLUGIN_ROOT}/skills/agent-reflect-and-learn/scripts/collect_day_evidence.py" --date YYYY-MM-DD --repo . --out artifacts --extra notes/today.md docs/plan.md
+python3 "${CLAUDE_PLUGIN_ROOT}/skills/agent-reflect-and-learn/scripts/collect_day_evidence.py" --date YYYY-MM-DD --repo . --extra notes/today.md docs/plan.md
+```
+
+One-off output directory (bypasses config for this run):
+
+```bash
+python3 "${CLAUDE_PLUGIN_ROOT}/skills/agent-reflect-and-learn/scripts/collect_day_evidence.py" --date YYYY-MM-DD --repo . --out /tmp/other-out
 ```
 
 Use the generated evidence packet as the factual base. Prefer evidence over memory.
@@ -140,15 +189,17 @@ Favor insights that are:
 Do not publish fluff. Skip this section if the material is weak.
 
 ## Output contract
+Let **`$ART`** be the configured artifacts directory (`artifactsPath` from `.agent-reflect-and-learn/config.json`, or the directory you passed to `--out` for this run).
+
 Write the final report to:
 
-`artifacts/YYYY-MM-DD-daily-review.md`
+`$ART/YYYY-MM-DD-daily-review.md`
 
 Use the template in `assets/daily-review-template.md`.
 
 Also write a machine-friendly action file:
 
-`artifacts/YYYY-MM-DD-improvement-actions.json`
+`$ART/YYYY-MM-DD-improvement-actions.json`
 
 That JSON must contain arrays for:
 - `memory_updates`
@@ -158,11 +209,13 @@ That JSON must contain arrays for:
 - `tomorrow_actions`
 
 ### 8) Push artifacts to the remote
-After both the evidence packet and the two review outputs exist under `artifacts/`, run from the knowledge-base repo root (same cwd as `--out artifacts`):
+After both the evidence packet and the two review outputs exist under **`$ART`**, run from the same **`--repo` root**:
 
 ```bash
-python3 "${CLAUDE_PLUGIN_ROOT}/skills/agent-reflect-and-learn/scripts/push_daily_review_artifacts.py" --date YYYY-MM-DD --repo . --artifacts-dir artifacts
+python3 "${CLAUDE_PLUGIN_ROOT}/skills/agent-reflect-and-learn/scripts/push_daily_review_artifacts.py" --date YYYY-MM-DD --repo .
 ```
+
+This reads `artifactsPath` from `.agent-reflect-and-learn/config.json` (same as the collector). One-off: add `--artifacts-dir DIR` relative to the repo root.
 
 This stages the dated files (`*-evidence.md`, `*-evidence.json`, `*-daily-review.md`, `*-improvement-actions.json`), commits if there is a staged change, then `git pull --rebase` (non-interactive: set `EDITOR=true` in the script’s environment) and `git push`. Use `--dry-run` to print what would run. Exits with an error if none of the four files exist.
 

@@ -8,6 +8,12 @@ import subprocess
 import sys
 from pathlib import Path
 
+_scripts_dir = Path(__file__).resolve().parent
+if str(_scripts_dir) not in sys.path:
+    sys.path.insert(0, str(_scripts_dir))
+
+import plugin_config  # noqa: E402
+
 
 def run(
     cmd: list[str],
@@ -36,12 +42,24 @@ def main() -> int:
     )
     p.add_argument("--date", required=True, help="YYYY-MM-DD (must match artifact name prefix)")
     p.add_argument("--repo", default=".", type=Path, help="Git repository root")
-    p.add_argument("--artifacts-dir", default="artifacts", help="Directory under repo root")
+    p.add_argument(
+        "--artifacts-dir",
+        default=None,
+        metavar="DIR",
+        help="Directory under repo root (default: artifactsPath from .agent-reflect-and-learn/config.json)",
+    )
     p.add_argument("--dry-run", action="store_true", help="Print actions only")
     args = p.parse_args()
 
     repo = args.repo.expanduser().resolve()
-    art = (repo / args.artifacts_dir).resolve()
+    if args.artifacts_dir is not None:
+        art = (repo / Path(args.artifacts_dir)).resolve()
+    else:
+        ap = plugin_config.load_artifacts_path(repo)
+        if ap is None:
+            plugin_config.print_config_required_message(repo, prog="push_daily_review_artifacts.py")
+            return 2
+        art = plugin_config.resolve_artifacts_dir(repo, ap)
     date = args.date
     names = [
         f"{date}-evidence.md",
