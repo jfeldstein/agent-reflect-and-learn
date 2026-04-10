@@ -53,15 +53,17 @@ Use the generated evidence packet as the factual base. Prefer evidence over memo
 | Git (`--repo`) | status, diffs, same-day log, files touched |
 | `~/.claude/plans` | Claude Code plan files modified on the target date |
 | `~/.claude/history.jsonl` | Lines whose JSON mentions the target date |
-| `~/.claude/projects/<repo-slug>/*.jsonl` | Per-worktree Claude Code session transcripts for that repo (mtime on target date) |
+| `~/.claude/projects/*/*.jsonl` | Claude Code session transcripts for **every** project slug with files touched on the target date; transcripts for `--repo`'s slug are listed first under the file cap |
 | `~/.claude/sessions/*.json` | Claude IDE session blobs (mtime on target date) |
 | `~/.cursor/plans` | Cursor plan files modified on the target date |
-| `~/.cursor/projects/*/agent-transcripts` | Cursor agent transcripts (`.jsonl`/`.json`, mtime on target date) |
+| `~/.cursor/projects/*/agent-transcripts/**` | Cursor agent chat logs (`.jsonl`/`.json`) **recursively** — includes session subfolders and `subagents/` (mtime on target date) |
 | `--extra …` | Additional paths you pass in |
 
 Same-day matching uses the file **mtime calendar day** in local time (except `history.jsonl`, which uses substring match on `YYYY-MM-DD` inside each line’s JSON).
 
 **Noise control:** By default, Claude project `*.jsonl` and Cursor agent `*.jsonl` snippets **drop lines containing** `<scheduled-task` (scheduled automation replays). Full capture: `--no-exclude-scheduled-task-lines`.
+
+**Note:** Cursor’s legacy `~/.cursor/chats/**/store.db` chat UI storage is SQLite, not plain logs; this collector uses **agent transcripts** (`agent-transcripts/**/*.jsonl`) as the durable text session record.
 
 ### 2) Reconstruct the day
 From the evidence packet, reconstruct:

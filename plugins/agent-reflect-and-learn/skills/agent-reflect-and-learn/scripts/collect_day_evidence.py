@@ -74,8 +74,8 @@ def parse_args() -> argparse.Namespace:
     p.add_argument(
         "--max-claude-project-jsonl",
         type=int,
-        default=8,
-        help="Cap for ~/.claude/projects/<repo-slug>/*.jsonl touched on target day",
+        default=16,
+        help="Cap for ~/.claude/projects/*/*.jsonl touched on target day (repo slug listed first)",
     )
     p.add_argument(
         "--max-claude-session-json",
@@ -86,8 +86,8 @@ def parse_args() -> argparse.Namespace:
     p.add_argument(
         "--max-cursor-transcripts",
         type=int,
-        default=15,
-        help="Cap for ~/.cursor/projects/*/agent-transcripts/* touched on target day",
+        default=24,
+        help="Cap for ~/.cursor/projects/*/agent-transcripts/** (recursive) touched on target day",
     )
     p.add_argument(
         "--max-cursor-plan-files",
@@ -163,6 +163,46 @@ def path_to_claude_code_project_slug(repo: Path) -> str:
     return s.replace("/", "-")
 
 
+def find_claude_project_jsonl_for_day(
+    projects_root: Path,
+    day: dt.date,
+    repo: Path | None,
+) -> list[Path]:
+    """
+    All Claude Code project *.jsonl touched on `day` under projects_root.
+
+    When `repo` is set, files under that repo's slug directory are sorted first
+    (then by newest mtime) so the reviewed workspace stays visible under tight caps.
+    """
+    if not projects_root.is_dir():
+        return []
+
+    slug: str | None = path_to_claude_code_project_slug(repo) if repo is not None else None
+
+    scored: list[tuple[int, float, Path]] = []
+    for proj_dir in projects_root.iterdir():
+        if not proj_dir.is_dir():
+            continue
+        match_repo = slug is not None and proj_dir.name == slug
+        for path in proj_dir.iterdir():
+            if not path.is_file() or path.suffix != ".jsonl":
+                continue
+            if path.name == "sessions-index.json":
+                continue
+            try:
+                st = path.stat()
+                mtime_d = dt.date.fromtimestamp(st.st_mtime)
+            except OSError:
+                continue
+            if mtime_d != day:
+                continue
+            priority = 0 if match_repo else 1
+            scored.append((priority, -st.st_mtime, path))
+
+    scored.sort(key=lambda t: (t[0], t[1]))
+    return [p for _, _, p in scored]
+
+
 def collect_claude_project_session_jsonl(
     repo: Path,
     day: dt.date,
@@ -170,25 +210,9 @@ def collect_claude_project_session_jsonl(
     *,
     exclude_scheduled_task_lines: bool,
 ) -> list[dict]:
-    """Per-repo Claude Code transcript files (not covered by global history.jsonl)."""
-    slug = path_to_claude_code_project_slug(repo)
-    proj_dir = Path.home() / ".claude" / "projects" / slug
-    if not proj_dir.is_dir():
-        return []
-
-    candidates: list[Path] = []
-    for path in proj_dir.iterdir():
-        if not path.is_file() or path.suffix != ".jsonl":
-            continue
-        if path.name == "sessions-index.json":
-            continue
-        try:
-            mtime = dt.date.fromtimestamp(path.stat().st_mtime)
-        except OSError:
-            continue
-        if mtime == day:
-            candidates.append(path)
-    candidates.sort(key=lambda p: p.stat().st_mtime, reverse=True)
+    """Claude Code transcript *.jsonl for all project slugs touched that day (repo slug first)."""
+    projects_root = Path.home() / ".claude" / "projects"
+    candidates = find_claude_project_jsonl_for_day(projects_root, day, repo)
 
     out: list[dict] = []
     for path in candidates[:max_files]:
@@ -230,14 +254,11 @@ def collect_claude_sessions_dir_json(day: dt.date, max_files: int) -> list[dict]
     return out
 
 
-def collect_cursor_agent_transcripts(
-    day: dt.date,
-    max_files: int,
-    *,
-    exclude_scheduled_task_lines: bool,
-) -> list[dict]:
-    """Cursor workspace agent transcripts (jsonl/json under agent-transcripts/)."""
-    projects_root = Path.home() / ".cursor" / "projects"
+def find_cursor_agent_transcript_files(projects_root: Path, day: dt.date) -> list[Path]:
+    """
+    Cursor agent chat logs: *.jsonl / *.json under each workspace's agent-transcripts/,
+    including nested session folders (e.g. agent-transcripts/<uuid>/*.jsonl) and subagents/.
+    """
     if not projects_root.is_dir():
         return []
 
@@ -248,7 +269,7 @@ def collect_cursor_agent_transcripts(
         at_dir = proj / "agent-transcripts"
         if not at_dir.is_dir():
             continue
-        for path in at_dir.iterdir():
+        for path in at_dir.rglob("*"):
             if not path.is_file():
                 continue
             if path.suffix not in (".jsonl", ".json"):
@@ -260,6 +281,18 @@ def collect_cursor_agent_transcripts(
             if mtime == day:
                 candidates.append(path)
     candidates.sort(key=lambda p: p.stat().st_mtime, reverse=True)
+    return candidates
+
+
+def collect_cursor_agent_transcripts(
+    day: dt.date,
+    max_files: int,
+    *,
+    exclude_scheduled_task_lines: bool,
+) -> list[dict]:
+    """Cursor workspace agent transcripts (recursive under agent-transcripts/)."""
+    projects_root = Path.home() / ".cursor" / "projects"
+    candidates = find_cursor_agent_transcript_files(projects_root, day)
 
     out: list[dict] = []
     for path in candidates[:max_files]:
@@ -445,9 +478,9 @@ def render_markdown(date_str: str, payload: dict) -> str:
                 lines.append("")
 
     append_file_snippets(
-        "## Claude Code project transcripts (`~/.claude/projects/<slug>/*.jsonl`)",
+        "## Claude Code project transcripts (`~/.claude/projects/*/*.jsonl`)",
         payload.get("claude_project_session_jsonl", []),
-        "No same-day `.jsonl` transcripts for this repo's Claude Code project slug.",
+        "No same-day Claude Code `.jsonl` transcripts under `~/.claude/projects` (all slugs).",
     )
     append_file_snippets(
         "## Claude IDE session files (`~/.claude/sessions/*.json`)",
@@ -460,9 +493,9 @@ def render_markdown(date_str: str, payload: dict) -> str:
         "No same-day Cursor plan files found.",
     )
     append_file_snippets(
-        "## Cursor agent transcripts (`~/.cursor/projects/*/agent-transcripts`)",
+        "## Cursor agent transcripts (`~/.cursor/projects/*/agent-transcripts/**`)",
         payload.get("cursor_agent_transcripts", []),
-        "No same-day Cursor agent transcript files found.",
+        "No same-day Cursor agent transcript files found (searched recursively under each workspace's `agent-transcripts/`).",
     )
 
     extra = payload.get("extra", [])

@@ -7,7 +7,7 @@ This asset is designed for explicit scheduled use, such as the end of each workd
 
 ## Package contents
 - `SKILL.md` — the workflow and output contract
-- `scripts/collect_day_evidence.py` — deterministic collector for git, `~/.claude` (plans, global history, per-repo Code transcripts, IDE `sessions`), `~/.cursor` (plans, agent transcripts), and `--extra` paths
+- `scripts/collect_day_evidence.py` — deterministic collector for git, `~/.claude` (plans, global history, **all** Code project `*.jsonl` transcripts touched that day, IDE `sessions`), `~/.cursor` (plans, **recursive** agent-transcript logs), and `--extra` paths
 - `scripts/push_daily_review_artifacts.py` — stage dated `artifacts/*` files, commit if needed, `pull --rebase`, `push`
 - `assets/daily-review-template.md` — fixed report structure
 - `references/review-rubric.md` — decision rules for what becomes memory, a skill, a script, or a workflow fix
