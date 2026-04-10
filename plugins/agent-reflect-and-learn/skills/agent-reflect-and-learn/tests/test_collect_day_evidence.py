@@ -4,6 +4,8 @@ from __future__ import annotations
 import datetime as dt
 import importlib.util
 import os
+import subprocess
+import sys
 import tempfile
 import unittest
 from pathlib import Path
@@ -80,6 +82,36 @@ class TestFindClaudeProjectJsonl(unittest.TestCase):
             found = cde.find_claude_project_jsonl_for_day(root, day, repo)
             self.assertEqual(found[0], f_mine)
             self.assertEqual(found[1], f_other)
+
+
+class TestRepoRootLaunchers(unittest.TestCase):
+    """Marketplace repo root `scripts/*` delegates to the bundled plugin scripts."""
+
+    def test_collect_launcher_delegates(self) -> None:
+        root = Path(__file__).resolve().parents[5]
+        launcher = root / "scripts" / "collect_day_evidence.py"
+        self.assertTrue(launcher.is_file(), msg=str(launcher))
+        r = subprocess.run(
+            [sys.executable, str(launcher), "--help"],
+            capture_output=True,
+            text=True,
+            timeout=60,
+        )
+        self.assertEqual(r.returncode, 0, msg=r.stderr)
+        self.assertIn("Collect deterministic evidence", r.stdout)
+
+    def test_push_launcher_delegates(self) -> None:
+        root = Path(__file__).resolve().parents[5]
+        launcher = root / "scripts" / "push_daily_review_artifacts.py"
+        self.assertTrue(launcher.is_file(), msg=str(launcher))
+        r = subprocess.run(
+            [sys.executable, str(launcher), "--help"],
+            capture_output=True,
+            text=True,
+            timeout=60,
+        )
+        self.assertEqual(r.returncode, 0, msg=r.stderr)
+        self.assertIn("push", r.stdout.lower())
 
 
 if __name__ == "__main__":

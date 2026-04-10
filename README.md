@@ -39,7 +39,7 @@ Plugin root: `plugins/agent-reflect-and-learn/` (in this repo; same layout in th
 - **Agent** `agent-reflect-daily` — evidence, reflection, artifacts, push (`agents/agent-reflect-daily.md`)
 - **Skill** `wisdom-to-content` — learnings → social posts and blog drafts (`skills/wisdom-to-content/SKILL.md`)
 - **Hooks** (Cursor) — `hooks/hooks.json` + `hooks/agent-reflect-and-learn-stop.mjs`
-- **Scripts** — `collect_day_evidence.py`, `push_daily_review_artifacts.py`
+- **Scripts** — skill `scripts/*.py`; plugin-root `plugins/agent-reflect-and-learn/scripts/*.sh` (no `CLAUDE_PLUGIN_ROOT`); marketplace root `scripts/*.py` launchers
 - **Assets** — report template, rubric, examples
 
 ## Configuration (per reviewed repository)
@@ -54,19 +54,32 @@ Relative paths are resolved against that repo root. Create or edit with **`jq`**
 
 ## Quick use
 
-From the root of the repository you want to review, after config exists (or use `--out` / `--artifacts-dir` to override):
+From the root of the **repository you want to review** (`--repo .`), after config exists (or use `--out` / `--artifacts-dir` to override).
+
+**Local clone of this marketplace repo** (your cwd is the repository root that contains `plugins/`): the root-level launchers resolve the bundled scripts; you do not need `CLAUDE_PLUGIN_ROOT`:
 
 ```bash
-python3 "${CLAUDE_PLUGIN_ROOT}/skills/agent-reflect-and-learn/scripts/collect_day_evidence.py" --date YYYY-MM-DD --repo .
+python3 scripts/collect_day_evidence.py --date YYYY-MM-DD --repo .
 ```
 
-After the retrospective run produces `YYYY-MM-DD-daily-review.md` and `YYYY-MM-DD-improvement-actions.json` under your artifacts directory, push from the same repo root:
+After the retrospective run produces `YYYY-MM-DD-daily-review.md` and `YYYY-MM-DD-improvement-actions.json` under your artifacts directory:
 
 ```bash
-python3 "${CLAUDE_PLUGIN_ROOT}/skills/agent-reflect-and-learn/scripts/push_daily_review_artifacts.py" --date YYYY-MM-DD --repo .
+python3 scripts/push_daily_review_artifacts.py --date YYYY-MM-DD --repo .
 ```
 
-If you run these commands outside Claude Code, set `CLAUDE_PLUGIN_ROOT` to the filesystem path of this plugin’s root directory (the folder that contains `.claude-plugin/`).
+**Installed plugin:** use a path that stays valid when `CLAUDE_PLUGIN_ROOT` is unset (bash turns the naive `${CLAUDE_PLUGIN_ROOT}/skills/...` into `/skills/...`). Options:
+
+- **Bash-safe Python path** (if unset, path is relative to **plugin root** — use absolute path or `cwd` on the plugin directory):
+
+```bash
+python3 "${CLAUDE_PLUGIN_ROOT}${CLAUDE_PLUGIN_ROOT:+/}skills/agent-reflect-and-learn/scripts/collect_day_evidence.py" --date YYYY-MM-DD --repo .
+python3 "${CLAUDE_PLUGIN_ROOT}${CLAUDE_PLUGIN_ROOT:+/}skills/agent-reflect-and-learn/scripts/push_daily_review_artifacts.py" --date YYYY-MM-DD --repo .
+```
+
+- **Plugin-root shell wrappers** (no env var; resolve via script location): `plugins/agent-reflect-and-learn/scripts/collect_day_evidence.sh` and `push_daily_review_artifacts.sh`.
+
+When the variable is set, it must be the plugin root (folder containing `.claude-plugin/`).
 
 ## Tests
 

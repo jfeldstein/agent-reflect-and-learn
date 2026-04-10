@@ -27,17 +27,18 @@ This flow is for **explicit** runs (scheduled task, slash command, hook follow-u
 
 ## Workflow
 
-Work from the **target git repository root** (`--repo` / workspace root the user is reviewing). Respect `CLAUDE_PLUGIN_ROOT` for script paths under the plugin install.
+Work from the **target git repository root** (`--repo` / workspace root the user is reviewing). For collector/push, use paths that work **with or without** `CLAUDE_PLUGIN_ROOT`.
 
 1. **Artifacts config (first use per repo)**  
    If `.agent-reflect-and-learn/config.json` is missing or has no `artifactsPath`, **ask** the user where to store artifacts (recommend `artifacts`), then create the file with **`jq`** as in the skill bundle docs. Never invent a path silently.  
    Paths in config are under the repo root unless absolute.
 
 2. **Collect evidence first**  
-   Do not freeform-reflect before the packet exists. Run:
+   Do not freeform-reflect before the packet exists. **Path fallbacks:** (a) Bash-safe expansion below — when `CLAUDE_PLUGIN_ROOT` is unset, you get a path **relative to the plugin root** (run with `cwd` there or pass an absolute path). (b) Plugin-root shell wrappers (`scripts/collect_day_evidence.sh` next to `.claude-plugin/`) resolve the Python script via `BASH_SOURCE` — no env var. (c) From a **clone of this marketplace repo**, `python3 /path/to/marketplace-root/scripts/collect_day_evidence.py` (repo-root launcher).  
+   Avoid the naive form `python3 "${CLAUDE_PLUGIN_ROOT}/skills/..."` when the variable may be empty (bash turns that into `/skills/...`).
 
    ```bash
-   python3 "${CLAUDE_PLUGIN_ROOT}/skills/agent-reflect-and-learn/scripts/collect_day_evidence.py" --date YYYY-MM-DD --repo .
+   python3 "${CLAUDE_PLUGIN_ROOT}${CLAUDE_PLUGIN_ROOT:+/}skills/agent-reflect-and-learn/scripts/collect_day_evidence.py" --date YYYY-MM-DD --repo .
    ```
 
    Omit `--out` when config exists so `artifactsPath` is used. Use `--extra` for additional paths; use `--out` only for one-off output.  
@@ -66,7 +67,7 @@ Work from the **target git repository root** (`--repo` / workspace root the user
     After evidence + review outputs exist under `$ART`:
 
     ```bash
-    python3 "${CLAUDE_PLUGIN_ROOT}/skills/agent-reflect-and-learn/scripts/push_daily_review_artifacts.py" --date YYYY-MM-DD --repo .
+    python3 "${CLAUDE_PLUGIN_ROOT}${CLAUDE_PLUGIN_ROOT:+/}skills/agent-reflect-and-learn/scripts/push_daily_review_artifacts.py" --date YYYY-MM-DD --repo .
     ```
 
     Use `--dry-run` if the user only wants a preview. Respect non-interactive rebase expectations documented in the skill bundle.
