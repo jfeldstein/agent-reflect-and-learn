@@ -1,0 +1,27 @@
+{
+  "name": "agent-reflect-and-learn",
+  "owner": {
+    "name": "jfeldstein"
+  },
+  "metadata": {
+    "description": "End-of-day retrospective: evidence from git and session history, improvement actions, and a tomorrow brief.",
+    "version": "1.0.0"
+  },
+  "plugins": [
+    {
+      "name": "agent-reflect-and-learn",
+      "source": ".",
+      "description": "End-of-day work review: collect evidence from git and session history, reflect on mistakes and friction, emit improvement actions and a tomorrow brief.",
+      "version": "1.0.0",
+      "repository": "https://github.com/jfeldstein/agent-reflect-and-learn",
+      "keywords": [
+        "agent-reflect-and-learn",
+        "daily-review",
+        "retrospective",
+        "reflection",
+        "learning",
+        "evidence"
+      ]
+    }
+  ]
+}
