@@ -2,6 +2,10 @@
   "name": "agent-reflect-and-learn",
   "version": "1.0.0",
   "description": "End-of-day work review: collect evidence from git and session history, reflect on mistakes and friction, emit improvement actions and a tomorrow brief.",
+  "repository": "https://github.com/jfeldstein/agent-reflect-and-learn",
+  "author": {
+    "name": "jfeldstein"
+  },
   "keywords": [
     "agent-reflect-and-learn",
     "daily-review",

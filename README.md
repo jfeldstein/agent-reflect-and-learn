@@ -2,9 +2,23 @@
 
 Claude Code plugin that bundles the **agent-reflect-and-learn** skill: a deliberate end-of-day retrospective backed by deterministic evidence collection, plus the slash command **`/agent-reflect-and-learn`**.
 
-## Install
+## Install (Claude Code)
 
-Add this repository as a plugin source in Claude Code (local path or git URL), then enable **agent-reflect-and-learn**.
+This repository is a **plugin marketplace** (catalog). Add it, then install the plugin:
+
+```text
+/plugin marketplace add jfeldstein/agent-reflect-and-learn
+/plugin install agent-reflect-and-learn@agent-reflect-and-learn-plugins
+/reload-plugins
+```
+
+You can also add a **local clone** while developing:
+
+```text
+/plugin marketplace add /path/to/agent-reflect-and-learn
+/plugin install agent-reflect-and-learn@agent-reflect-and-learn-plugins
+/reload-plugins
+```
 
 ## Daily scheduled task
 
@@ -17,6 +31,8 @@ run /agent-reflect-and-learn
 Point the task at the repository (or worktree) you want reviewed so `--repo .` and `artifacts/` resolve correctly. That invokes the bundled command, which runs the full skill workflow for today’s date.
 
 ## Contents
+
+Plugin root: `plugins/agent-reflect-and-learn/` (in this repo; same layout in the install cache after `plugin install`).
 
 - **Command** `/agent-reflect-and-learn` — `commands/agent-reflect-and-learn.md`
 - **Skill** `agent-reflect-and-learn` — workflow, output contract, and quality bar (`skills/agent-reflect-and-learn/SKILL.md`)
@@ -42,5 +58,5 @@ If you run these commands outside Claude Code, set `CLAUDE_PLUGIN_ROOT` to the f
 ## Tests
 
 ```bash
-cd skills/agent-reflect-and-learn && python3 -m unittest discover -s tests -v
+cd plugins/agent-reflect-and-learn/skills/agent-reflect-and-learn && python3 -m unittest discover -s tests -v
 ```

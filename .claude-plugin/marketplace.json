@@ -4,13 +4,12 @@
     "name": "jfeldstein"
   },
   "metadata": {
-    "description": "End-of-day retrospective: evidence from git and session history, improvement actions, and a tomorrow brief.",
+    "description": "Daily review and learning plugin for Claude Code.",
     "version": "1.0.0"
   },
   "plugins": [
     {
       "name": "agent-reflect-and-learn",
-      "source": "./plugins/agent-reflect-and-learn",
       "description": "End-of-day work review: collect evidence from git and session history, reflect on mistakes and friction, emit improvement actions and a tomorrow brief.",
       "version": "1.0.0",
       "repository": "https://github.com/jfeldstein/agent-reflect-and-learn",
@@ -21,7 +20,8 @@
         "reflection",
         "learning",
         "evidence"
-      ]
+      ],
+      "source": "./plugins/agent-reflect-and-learn"
     }
   ]
 }
