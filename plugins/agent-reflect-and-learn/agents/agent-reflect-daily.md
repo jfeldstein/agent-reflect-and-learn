@@ -31,7 +31,7 @@ Work from the **target git repository root** (`--repo` / workspace root the user
 
 1. **Artifacts config (first use per repo)**  
    If `.agent-reflect-and-learn/config.json` is missing or has no `artifactsPath`, **ask** the user where to store artifacts (recommend `artifacts`), then create the file with **`jq`** as in the skill bundle docs. Never invent a path silently.  
-   Paths in config are under the repo root unless absolute.
+   Paths in config are under the repo root unless absolute. Optional **`extraEvidencePaths`**: JSON array of strings (repo-root-relative or absolute) merged into the collector’s extra inputs **before** any `--extra` CLI paths; duplicates dropped (config order first). Non-strings and blanks are ignored.
 
 2. **Collect evidence first**  
    Do not freeform-reflect before the packet exists. **Path fallbacks:** (a) Bash-safe expansion below — when `CLAUDE_PLUGIN_ROOT` is unset, you get a path **relative to the plugin root** (run with `cwd` there or pass an absolute path). (b) Plugin-root shell wrappers (`scripts/collect_day_evidence.sh` next to `.claude-plugin/`) resolve the Python script via `BASH_SOURCE` — no env var. (c) From a **clone of this marketplace repo**, `python3 /path/to/marketplace-root/scripts/collect_day_evidence.py` (repo-root launcher).  
@@ -44,7 +44,7 @@ Work from the **target git repository root** (`--repo` / workspace root the user
    Omit `--out` when config exists so `artifactsPath` is used. Use `--extra` for additional paths; use `--out` only for one-off output.  
    Use the generated evidence as the factual base.
 
-   **Collector coverage (summary):** git; `~/.claude/plans`, `history.jsonl`, project `*.jsonl`, `sessions`; `~/.cursor/plans`; `~/.cursor/projects/*/agent-transcripts/**` (recursive); `--extra`. Same-day = mtime calendar day locally (except `history.jsonl` date substring). Scheduled-task line filtering is default; `--no-exclude-scheduled-task-lines` for full capture.
+   **Collector coverage (summary):** git; `~/.claude/plans`, `history.jsonl`, project `*.jsonl`, `sessions`; `~/.cursor/plans`; `~/.cursor/projects/*/agent-transcripts/**` (recursive); `extraEvidencePaths` from config plus `--extra`. Same-day = mtime calendar day locally (except `history.jsonl` date substring). Scheduled-task line filtering is default; `--no-exclude-scheduled-task-lines` for full capture.
 
 3. **Reconstruct the day** from the packet: started / completed / abandoned work, decisions, tests, bugs, hot files, open loops.
 

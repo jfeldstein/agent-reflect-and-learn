@@ -378,6 +378,30 @@ def collect_claude_history(day: dt.date, max_items: int) -> list[dict]:
     return items
 
 
+def dedupe_resolve_extra_paths(
+    repo: Path, config_paths: list[str], cli_paths: list[str]
+) -> list[str]:
+    """
+    Merge config extras then CLI extras; resolve repo-relative paths against
+    repo root; dedupe by resolved path (first occurrence wins).
+    """
+    root = repo.resolve()
+    out: list[str] = []
+    seen: set[str] = set()
+    for raw in [*config_paths, *cli_paths]:
+        p = Path(raw).expanduser()
+        if not p.is_absolute():
+            p = (root / p).resolve()
+        else:
+            p = p.resolve()
+        key = str(p)
+        if key in seen:
+            continue
+        seen.add(key)
+        out.append(key)
+    return out
+
+
 def collect_extra(paths: list[str]) -> list[dict]:
     out: list[dict] = []
     for raw in paths:
@@ -576,7 +600,13 @@ def main() -> int:
             args.max_cursor_transcripts,
             exclude_scheduled_task_lines=args.exclude_scheduled_task_lines,
         ),
-        "extra": collect_extra(args.extra),
+        "extra": collect_extra(
+            dedupe_resolve_extra_paths(
+                repo,
+                plugin_config.load_extra_evidence_paths(repo),
+                list(args.extra),
+            )
+        ),
     }
 
     json_path = out_dir / f"{args.date}-evidence.json"

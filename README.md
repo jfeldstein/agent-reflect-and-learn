@@ -47,10 +47,13 @@ Plugin root: `plugins/agent-reflect-and-learn/` (in this repo; same layout in th
 Under the **target repo** root (`--repo`), the plugin reads `.agent-reflect-and-learn/config.json`:
 
 ```json
-{ "artifactsPath": "artifacts" }
+{
+  "artifactsPath": "artifacts",
+  "extraEvidencePaths": ["notes/daily.md"]
+}
 ```
 
-Relative paths are resolved against that repo root. Create or edit with **`jq`** (see `agents/agent-reflect-daily.md`). The collector and push scripts use this when `--out` / `--artifacts-dir` are omitted. First run: the subagent asks where to put artifacts if the file is missing.
+Relative paths are resolved against that repo root. Optional **`extraEvidencePaths`**: array of extra files or directories to bundle into the collector output (same semantics as `--extra`; merged with CLI `--extra`, config first). Create or edit with **`jq`** (see `agents/agent-reflect-daily.md`). The collector and push scripts use this when `--out` / `--artifacts-dir` are omitted. First run: the subagent asks where to put artifacts if the file is missing.
 
 ## Quick use
 

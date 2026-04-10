@@ -18,6 +18,37 @@ def config_path(repo: Path) -> Path:
     return config_dir(repo) / CONFIG_NAME
 
 
+def load_extra_evidence_paths(repo: Path) -> list[str]:
+    """
+    Return extraEvidencePaths from repo/.agent-reflect-and-learn/config.json.
+
+    Each entry must be a non-empty string (typically repo-root-relative).
+    Non-strings and blank strings are skipped. Missing key or unreadable
+    config yields an empty list.
+    """
+    path = config_path(repo)
+    if not path.is_file():
+        return []
+    try:
+        raw = path.read_text(encoding="utf-8")
+        data = json.loads(raw)
+    except (OSError, json.JSONDecodeError):
+        return []
+    if not isinstance(data, dict):
+        return []
+    val = data.get("extraEvidencePaths")
+    if not isinstance(val, list):
+        return []
+    out: list[str] = []
+    for item in val:
+        if not isinstance(item, str):
+            continue
+        s = item.strip()
+        if s:
+            out.append(s)
+    return out
+
+
 def load_artifacts_path(repo: Path) -> str | None:
     """
     Return artifactsPath from repo/.agent-reflect-and-learn/config.json, or None

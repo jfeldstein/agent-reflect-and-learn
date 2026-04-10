@@ -70,6 +70,39 @@ class TestPluginConfig(unittest.TestCase):
             )
             self.assertIsNone(pc.load_artifacts_path(repo))
 
+    def test_extra_evidence_paths_missing_returns_empty(self) -> None:
+        with tempfile.TemporaryDirectory() as td:
+            repo = Path(td)
+            d = repo / pc.CONFIG_DIR
+            d.mkdir(parents=True)
+            (d / pc.CONFIG_NAME).write_text(
+                json.dumps({"artifactsPath": "artifacts"}),
+                encoding="utf-8",
+            )
+            self.assertEqual(pc.load_extra_evidence_paths(repo), [])
+
+    def test_extra_evidence_paths_filters_non_strings(self) -> None:
+        with tempfile.TemporaryDirectory() as td:
+            repo = Path(td)
+            d = repo / pc.CONFIG_DIR
+            d.mkdir(parents=True)
+            (d / pc.CONFIG_NAME).write_text(
+                json.dumps({
+                    "artifactsPath": "artifacts",
+                    "extraEvidencePaths": ["a.md", 9, "  ", "b.md", {"x": 1}],
+                }),
+                encoding="utf-8",
+            )
+            self.assertEqual(pc.load_extra_evidence_paths(repo), ["a.md", "b.md"])
+
+    def test_extra_evidence_paths_invalid_json_returns_empty(self) -> None:
+        with tempfile.TemporaryDirectory() as td:
+            repo = Path(td)
+            d = repo / pc.CONFIG_DIR
+            d.mkdir(parents=True)
+            (d / pc.CONFIG_NAME).write_text("{bad", encoding="utf-8")
+            self.assertEqual(pc.load_extra_evidence_paths(repo), [])
+
 
 if __name__ == "__main__":
     unittest.main()

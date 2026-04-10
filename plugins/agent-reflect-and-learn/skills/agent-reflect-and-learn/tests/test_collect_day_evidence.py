@@ -23,6 +23,16 @@ def _load_collector():
 cde = _load_collector()
 
 
+def _marketplace_root_with_launchers() -> Path | None:
+    """Clone layout has `scripts/collect_day_evidence.py` at repo root; plugin cache may not."""
+    here = Path(__file__).resolve()
+    for base in [here, *here.parents]:
+        launcher = base / "scripts" / "collect_day_evidence.py"
+        if launcher.is_file():
+            return base
+    return None
+
+
 class TestClaudeProjectSlug(unittest.TestCase):
     def test_macos_style_path(self) -> None:
         p = Path("/Users/jordan/Code/Documents")
@@ -84,11 +94,35 @@ class TestFindClaudeProjectJsonl(unittest.TestCase):
             self.assertEqual(found[1], f_other)
 
 
+class TestDedupeResolveExtraPaths(unittest.TestCase):
+    def test_config_then_cli_order_and_dedupe(self) -> None:
+        with tempfile.TemporaryDirectory() as td:
+            repo = Path(td)
+            a = repo / "a.txt"
+            b = repo / "b.txt"
+            a.write_text("a", encoding="utf-8")
+            b.write_text("b", encoding="utf-8")
+            got = cde.dedupe_resolve_extra_paths(repo, ["a.txt", "b.txt"], ["a.txt"])
+            self.assertEqual(len(got), 2)
+            self.assertEqual(Path(got[0]).name, "a.txt")
+            self.assertEqual(Path(got[1]).name, "b.txt")
+
+    def test_absolute_path_preserved(self) -> None:
+        with tempfile.TemporaryDirectory() as td:
+            repo = Path(td)
+            ext = Path(td) / "outside.txt"
+            ext.write_text("x", encoding="utf-8")
+            got = cde.dedupe_resolve_extra_paths(repo, [str(ext)], [])
+            self.assertEqual(got, [str(ext.resolve())])
+
+
 class TestRepoRootLaunchers(unittest.TestCase):
     """Marketplace repo root `scripts/*` delegates to the bundled plugin scripts."""
 
     def test_collect_launcher_delegates(self) -> None:
-        root = Path(__file__).resolve().parents[5]
+        root = _marketplace_root_with_launchers()
+        if root is None:
+            self.skipTest("no marketplace scripts/ (plugin cache or skill-only layout)")
         launcher = root / "scripts" / "collect_day_evidence.py"
         self.assertTrue(launcher.is_file(), msg=str(launcher))
         r = subprocess.run(
@@ -101,7 +135,9 @@ class TestRepoRootLaunchers(unittest.TestCase):
         self.assertIn("Collect deterministic evidence", r.stdout)
 
     def test_push_launcher_delegates(self) -> None:
-        root = Path(__file__).resolve().parents[5]
+        root = _marketplace_root_with_launchers()
+        if root is None:
+            self.skipTest("no marketplace scripts/ (plugin cache or skill-only layout)")
         launcher = root / "scripts" / "push_daily_review_artifacts.py"
         self.assertTrue(launcher.is_file(), msg=str(launcher))
         r = subprocess.run(
