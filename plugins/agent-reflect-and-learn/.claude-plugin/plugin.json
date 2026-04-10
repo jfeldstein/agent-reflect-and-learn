@@ -17,6 +17,5 @@
     "social-media",
     "blog",
     "writing"
-  ],
-  "agents": "./agents/"
+  ]
 }
