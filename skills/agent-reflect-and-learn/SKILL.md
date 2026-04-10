@@ -1,9 +1,9 @@
 ---
-name: daily-work-review
-description: Run on an explicit daily schedule to review the day's work, extract mistakes and reusable learnings, convert repeated prose work into rules or scripts, summarize debugging sessions, and produce a sharp starting brief for tomorrow. Use when the user says daily review, end-of-day review, wrap up the day, daily retro, prepare tomorrow, or explicitly invokes daily-work-review.
+name: agent-reflect-and-learn
+description: Run on an explicit daily schedule to review the day's work, extract mistakes and reusable learnings, convert repeated prose work into rules or scripts, summarize debugging sessions, and produce a sharp starting brief for tomorrow. Use when the user says daily review, end-of-day review, wrap up the day, daily retro, prepare tomorrow, runs /agent-reflect-and-learn, or explicitly invokes agent-reflect-and-learn.
 ---
 
-# Daily Work Review
+# Agent reflect and learn
 
 ## Purpose
 This skill performs a deliberate end-of-day retrospective so the next day's work starts from cleaner state, sharper memory, and lower repeated error rate.
@@ -35,13 +35,13 @@ Start by running the deterministic collector:
 Run from the target git repo root (the workspace you are reviewing). With this plugin installed, `CLAUDE_PLUGIN_ROOT` points at the plugin directory:
 
 ```bash
-python3 "${CLAUDE_PLUGIN_ROOT}/skills/daily-work-review/scripts/collect_day_evidence.py" --date YYYY-MM-DD --repo . --out artifacts
+python3 "${CLAUDE_PLUGIN_ROOT}/skills/agent-reflect-and-learn/scripts/collect_day_evidence.py" --date YYYY-MM-DD --repo . --out artifacts
 ```
 
 If needed, include extra notes or paths:
 
 ```bash
-python3 "${CLAUDE_PLUGIN_ROOT}/skills/daily-work-review/scripts/collect_day_evidence.py" --date YYYY-MM-DD --repo . --out artifacts --extra notes/today.md docs/plan.md
+python3 "${CLAUDE_PLUGIN_ROOT}/skills/agent-reflect-and-learn/scripts/collect_day_evidence.py" --date YYYY-MM-DD --repo . --out artifacts --extra notes/today.md docs/plan.md
 ```
 
 Use the generated evidence packet as the factual base. Prefer evidence over memory.
@@ -159,7 +159,7 @@ That JSON must contain arrays for:
 After both the evidence packet and the two review outputs exist under `artifacts/`, run from the knowledge-base repo root (same cwd as `--out artifacts`):
 
 ```bash
-python3 "${CLAUDE_PLUGIN_ROOT}/skills/daily-work-review/scripts/push_daily_review_artifacts.py" --date YYYY-MM-DD --repo . --artifacts-dir artifacts
+python3 "${CLAUDE_PLUGIN_ROOT}/skills/agent-reflect-and-learn/scripts/push_daily_review_artifacts.py" --date YYYY-MM-DD --repo . --artifacts-dir artifacts
 ```
 
 This stages the dated files (`*-evidence.md`, `*-evidence.json`, `*-daily-review.md`, `*-improvement-actions.json`), commits if there is a staged change, then `git pull --rebase` (non-interactive: set `EDITOR=true` in the script’s environment) and `git push`. Use `--dry-run` to print what would run. Exits with an error if none of the four files exist.

@@ -1,4 +1,4 @@
-# daily-work-review
+# agent-reflect-and-learn
 
 A manually invoked daily retrospective skill bundle.
 
@@ -19,7 +19,7 @@ At the end of the day:
 From the root of the repository you are reviewing:
 
 ```bash
-python3 "${CLAUDE_PLUGIN_ROOT}/skills/daily-work-review/scripts/collect_day_evidence.py" --date YYYY-MM-DD --repo . --out artifacts
+python3 "${CLAUDE_PLUGIN_ROOT}/skills/agent-reflect-and-learn/scripts/collect_day_evidence.py" --date YYYY-MM-DD --repo . --out artifacts
 ```
 
 Then run the skill explicitly with the evidence packet and template to produce:
@@ -29,7 +29,7 @@ Then run the skill explicitly with the evidence packet and template to produce:
 Finally push those files (and the evidence pair) from the repo root:
 
 ```bash
-python3 "${CLAUDE_PLUGIN_ROOT}/skills/daily-work-review/scripts/push_daily_review_artifacts.py" --date YYYY-MM-DD --repo . --artifacts-dir artifacts
+python3 "${CLAUDE_PLUGIN_ROOT}/skills/agent-reflect-and-learn/scripts/push_daily_review_artifacts.py" --date YYYY-MM-DD --repo . --artifacts-dir artifacts
 ```
 
 When invoking the scripts manually outside Claude Code, set `CLAUDE_PLUGIN_ROOT` to this plugin’s install path (directory containing `.claude-plugin/`).

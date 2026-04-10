@@ -10,7 +10,7 @@
     "Add a script to diff today's report against the prior 10 reports and surface recurring friction patterns."
   ],
   "workflow_fixes": [
-    "Rename the wrap-up command to daily-work-review so the intent is obvious and activation is not ambiguous."
+    "Rename the wrap-up command to agent-reflect-and-learn so the intent is obvious and activation is not ambiguous."
   ],
   "tomorrow_actions": [
     "Open artifacts/2026-04-09-daily-review.md first.",

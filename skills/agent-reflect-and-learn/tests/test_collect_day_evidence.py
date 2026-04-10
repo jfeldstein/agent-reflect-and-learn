@@ -1,4 +1,4 @@
-"""Unit tests for daily-work-review collector helpers."""
+"""Unit tests for agent-reflect-and-learn collector helpers."""
 from __future__ import annotations
 
 import importlib.util
