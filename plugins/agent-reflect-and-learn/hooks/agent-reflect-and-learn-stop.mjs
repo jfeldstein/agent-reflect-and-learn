@@ -10,7 +10,7 @@ const TRIAL_DEFAULT_MIN_MINUTES = 15;
 const TRIAL_DEFAULT_DURATION_MINUTES = 24 * 60;
 
 const FOLLOWUP_MESSAGE =
-  "Run `/agent-reflect-and-learn` when you want today's retrospective. Follow the `agent-reflect-and-learn` skill: collect evidence with the bundled `collect_day_evidence.py`, then produce `YYYY-MM-DD-daily-review.md` and `YYYY-MM-DD-improvement-actions.json` under your configured `artifactsPath` (see `.agent-reflect-and-learn/config.json`). If this is not a good time, dismiss this follow-up.";
+  "Run the `agent-reflect-and-learn` skill now. Use the `agent-reflect-daily` subagent for the full daily retrospective flow (evidence via `collect_day_evidence.py`, review + `improvement-actions.json` under your configured `artifactsPath` in `.agent-reflect-and-learn/config.json`). The parent skill is orchestration-only; do not inline collector or artifact writes outside the subagent. If this is not a good time, dismiss this follow-up.";
 
 function parsePositiveInt(value, fallback) {
   if (!value) {

@@ -6,7 +6,8 @@ A manually invoked daily retrospective skill bundle.
 This asset is designed for explicit scheduled use, such as the end of each workday. It reviews the day's work and produces artifacts that make the next day's work sharper and faster.
 
 ## Package contents
-- `SKILL.md` — the workflow and output contract
+- `SKILL.md` — orchestration-only; delegates to `agent-reflect-daily` (`disable-model-invocation`)
+- `../../agents/agent-reflect-daily.md` — full retrospective workflow and output contract for the subagent
 - `scripts/collect_day_evidence.py` — deterministic collector for git, `~/.claude` (plans, global history, **all** Code project `*.jsonl` transcripts touched that day, IDE `sessions`), `~/.cursor` (plans, **recursive** agent-transcript logs), and `--extra` paths
 - `scripts/push_daily_review_artifacts.py` — stage dated `artifacts/*` files, commit if needed, `pull --rebase`, `push`
 - `assets/daily-review-template.md` — fixed report structure
