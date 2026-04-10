@@ -1,6 +1,6 @@
 # agent-reflect-and-learn
 
-Claude Code plugin that bundles the **agent-reflect-and-learn** skill: a deliberate end-of-day retrospective backed by deterministic evidence collection, plus the slash command **`/agent-reflect-and-learn`**.
+Claude Code plugin that bundles the **agent-reflect-and-learn** skill: a deliberate end-of-day retrospective backed by deterministic evidence collection, plus the slash command **`/agent-reflect-and-learn`**. Also includes **wisdom-to-content**: turn learnings and insights into short- and medium-form social and blog copy.
 
 ## Install (Claude Code)
 
@@ -36,6 +36,7 @@ Plugin root: `plugins/agent-reflect-and-learn/` (in this repo; same layout in th
 
 - **Command** `/agent-reflect-and-learn` — `commands/agent-reflect-and-learn.md`
 - **Skill** `agent-reflect-and-learn` — workflow, output contract, and quality bar (`skills/agent-reflect-and-learn/SKILL.md`)
+- **Skill** `wisdom-to-content` — learnings → social posts and blog drafts (`skills/wisdom-to-content/SKILL.md`)
 - **Scripts** — `collect_day_evidence.py`, `push_daily_review_artifacts.py`
 - **Assets** — report template, rubric, examples
 
