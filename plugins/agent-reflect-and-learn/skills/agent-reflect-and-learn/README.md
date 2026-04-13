@@ -3,9 +3,11 @@
 A manually invoked daily retrospective skill bundle.
 
 ## What it is
+
 This asset is designed for explicit scheduled use, such as the end of each workday. It reviews the day's work and produces artifacts that make the next day's work sharper and faster.
 
 ## Package contents
+
 - `SKILL.md` — orchestration-only; delegates to `agent-reflect-daily` (`disable-model-invocation`)
 - `../../agents/agent-reflect-daily.md` — full retrospective workflow and output contract for the subagent
 - `scripts/collect_day_evidence.py` — deterministic collector for git, `~/.claude` (plans, global history, **all** Code project `*.jsonl` transcripts touched that day, IDE `sessions`), `~/.cursor` (plans, **recursive** agent-transcript logs), and `--extra` paths
@@ -16,9 +18,11 @@ This asset is designed for explicit scheduled use, such as the end of each workd
 - `examples/` — place for example outputs
 
 ## Configuration
+
 Per **reviewed** repository: `.agent-reflect-and-learn/config.json` with `{ "artifactsPath": "artifacts" }` (jq-friendly). First use: the **subagent** asks the user, then writes with `jq` (see `agents/agent-reflect-daily.md`). Scripts default to this path when `--out` / `--artifacts-dir` are omitted.
 
 ## Suggested use
+
 At the end of the day: run **`/agent-reflect-and-learn`** (or the hook follow-up). The skill delegates to **`agent-reflect-daily`**, which runs the collector, reflection, and artifact writes.
 
 For **manual** script runs from the reviewed repo root: prefer a **bash-safe** path (or the plugin-root `scripts/*.sh` wrappers) so an empty `CLAUDE_PLUGIN_ROOT` does not become `/skills/...`. If the variable is unset, the expansion below is relative to the **plugin root** unless you use an absolute path or the marketplace repo’s `scripts/collect_day_evidence.py` launcher.
@@ -37,6 +41,7 @@ python3 -m unittest discover -s tests -v
 ```
 
 ## Why this package shape
+
 The collector removes repetitive mechanical work.
 The skill keeps reasoning focused on mistakes, improvements, and tomorrow readiness.
 The template keeps reports comparable across days.

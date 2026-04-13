@@ -60,8 +60,8 @@ Work from the **target git repository root** (`--repo` / workspace root the user
 
 9. **Write outputs**  
    Let **`$ART`** be `artifactsPath` (or the `--out` directory used for this run).  
-   - `$ART/YYYY-MM-DD-daily-review.md` using `skills/agent-reflect-and-learn/assets/daily-review-template.md`.  
-   - `$ART/YYYY-MM-DD-improvement-actions.json` with arrays: `memory_updates`, `skill_candidates`, `script_candidates`, `workflow_fixes`, `tomorrow_actions`.
+   - `$ART/YYYY-MM-DD-daily-review.md` using `skills/agent-reflect-and-learn/assets/daily-review-template.md`, `skills/agent-reflect-and-learn/references/review-rubric.md`, and `skills/wisdom-to-content/SKILL.md`.
+   - `$ART/YYYY-MM-DD-improvement-actions.json` with arrays: `memory_updates`, `skill_candidates`, `script_candidates`, `workflow_fixes`, `tomorrow_actions`, `publishable_nuggets`.
 
 10. **Push (when appropriate)**  
     After evidence + review outputs exist under `$ART`:
